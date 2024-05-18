@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.room.PrimaryKey
 import com.devmasterteam.tasks.R
@@ -12,6 +14,7 @@ import com.devmasterteam.tasks.databinding.ActivityLoginBinding
 import com.devmasterteam.tasks.service.constants.TaskConstants
 import com.devmasterteam.tasks.service.repository.SecurityPreferences
 import com.devmasterteam.tasks.viewmodel.LoginViewModel
+import java.util.concurrent.Executor
 
 class LoginActivity : AppCompatActivity(), View.OnClickListener {
 
@@ -56,8 +59,9 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
     private fun observe() {
         viewModel.login.observe(this) {
             if (it.status()) {
-                startActivity(Intent(applicationContext, MainActivity::class.java))
-                finish()
+                biometricAuthentication()
+//                startActivity(Intent(applicationContext, MainActivity::class.java))
+//                finish()
             } else {
                 Toast.makeText(applicationContext, it.message(), Toast.LENGTH_SHORT).show()
             }
@@ -65,12 +69,35 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener {
 
         viewModel.loggedUser.observe(this) {
             if (it) {
-                startActivity(Intent(applicationContext, MainActivity::class.java))
-                finish()
+                biometricAuthentication()
             }
         }
 
 
+    }
+
+
+    private fun biometricAuthentication() {
+        val executor: Executor = ContextCompat.getMainExecutor(this)
+
+        val biometricPrompt = BiometricPrompt(this, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    startActivity(Intent(applicationContext, MainActivity::class.java))
+                    finish()
+                }
+            })
+
+        // Informações apresentadas no momento da autenticação
+        val info: BiometricPrompt.PromptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.autenticacao_biometrica))
+            // .setSubtitle("Subtítulo")
+            // .setDescription("Descrição")
+            .setNegativeButtonText(getString(R.string.cancelar))
+            .build()
+
+        // Exibe para o usuário
+        biometricPrompt.authenticate(info)
     }
 
 

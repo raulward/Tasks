@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.devmasterteam.tasks.service.constants.TaskConstants
+import com.devmasterteam.tasks.service.helper.BiometricHelper
 import com.devmasterteam.tasks.service.listener.APIListener
 import com.devmasterteam.tasks.service.model.PersonModel
 import com.devmasterteam.tasks.service.model.PriorityModel
@@ -64,7 +65,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         RetrofitClient.addHeaders(personKey, token)
 
         val logged = (token != "" && personKey != "")
-        _loggedUser.value = logged
+//        _loggedUser.value = logged
 
         if (!logged) {
             priorityRepository.list(object : APIListener<List<PriorityModel>> {
@@ -78,6 +79,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
             })
         }
+
+        _loggedUser.value = logged && BiometricHelper.isBiometricAvailable(getApplication())
 
     }
 
